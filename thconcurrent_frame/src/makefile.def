@@ -1,0 +1,14 @@
+CC=gcc
+
+ADDONSOBJS=../mhcomm_dll/libmhcomm.a	\
+	../mhthread_dll/libmhthread.a
+
+FLAGS=-W -g	\
+	-I../include	\
+	-I./include	\
+	-I../mhcomm_dll/include	\
+	-I../mhthread_dll/include	\
+
+CCFLAGS=$(FLAGS) -c
+CFLAGS=$(FLAGS) -lpthread
+RM=rm -rf core.*
