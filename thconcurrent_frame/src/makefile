@@ -2,6 +2,7 @@ include makefile.def
 
 DIRS =	\
 	mhcomm_dll	\
+	mhthread_dll	\
 	server	\
 	client
 
