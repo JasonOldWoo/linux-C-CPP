@@ -31,7 +31,7 @@ typedef struct _thread_pool
 	pthread_t*	threadp;
 	// allowed threads number.
 	int		max_thread_num;
-	// number of suspended threads.
+	// number of active work.
 	int		curr_queue_size;
 } thread_pool;
 

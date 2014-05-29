@@ -38,6 +38,7 @@ int thpool_add_worker(void* (*function) (void* arg), void* arg)
 	pthread_mutex_lock(&(t_pool->queue_lock));
 
 	thread_worker *worker = t_pool->queue_head;
+	printf("[%s]1 t_pool->queue_head=%p\n", __FUNCTION__, worker);
 	if (worker != NULL)
 	{
 		while (worker->next != NULL)
@@ -47,6 +48,7 @@ int thpool_add_worker(void* (*function) (void* arg), void* arg)
 	else
 		t_pool->queue_head = newworker;
 
+	printf("[%s]2 t_pool->queue_head=%p\n", __FUNCTION__, worker);
 	assert(t_pool->queue_head != NULL);
 
 	t_pool->curr_queue_size++;
@@ -102,6 +104,7 @@ void* thread_routine(void* arg)
 
 	while (1)
 	{
+		pthread_mutex_lock(&(t_pool->queue_lock));
 		while (0 == t_pool->curr_queue_size && !t_pool->is_shutdown)
 		{
 			printf("TID[%lu] is waiting....\n", pthread_self());
@@ -117,25 +120,33 @@ void* thread_routine(void* arg)
 		}
 
 		printf("TID[%lu] start to work!\n", pthread_self());
+		printf("curr_queue_size=[%d]\n", t_pool->curr_queue_size);
+		if (0 == t_pool->curr_queue_size)
+		{
+			pthread_mutex_unlock(&(t_pool->queue_lock));
+			continue ;
+		}
 
 		assert(t_pool->curr_queue_size != 0);
 		assert(t_pool->queue_head != NULL);
 
-		// wait queue size-1.
+		// active work size-1.
 		t_pool->curr_queue_size--;
 		thread_worker *worker = t_pool->queue_head;
 		t_pool->queue_head = worker->next;
+//		printf("[%s]1 worker=%p\n", __FUNCTION__, worker);
+//		printf("[%s]1 worker->next=%p\n", __FUNCTION__, worker->next);
+
 		pthread_mutex_unlock(&(t_pool->queue_lock));
 
 		// now do the reall job here.
 		(*(worker->function)) (worker->arg);
 		assert(worker != NULL);
+//		printf("[%s]2 worker=%p\n", __FUNCTION__, worker);
+//		printf("[%s]2 worker->next=%p\n", __FUNCTION__, worker->next);
 		free(worker);
 		worker = NULL;
 	}
 	// shouldn't arrive here!
 	pthread_exit(NULL);
 }
-
-
-
