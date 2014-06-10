@@ -12,9 +12,14 @@
 
 #define SKADDRIN struct sockaddr_in
 #define SKADDR struct sockaddr
-#define DEFAULT_PORT 8999
+#define DEFAULT_PORT 2280
 #define BUFFER_SIZE 2048
 #define BACKLOG 10000
+
+#define LOGIN 1
+#define LOGOUT 2
+#define P2PTRANS 3
+#define GETALLUSER  4
 
 typedef struct RemoteMessage
 {
@@ -22,5 +27,8 @@ typedef struct RemoteMessage
 	SKADDRIN cli_addr;
 	char cli_msg[BUFFER_SIZE];
 } RMSG;
+
+
+#define USER_LOGIN 1001
 
 #endif

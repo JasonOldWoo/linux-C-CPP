@@ -9,7 +9,7 @@ all:$(OBJS) $(TARGET)
 %.o:%.c
 	$(CC) $^ $(CCFLAGS) -o $@
 
-$(TARGET):$(OBJS)
+$(TARGET):$(OBJS) $(ADDONSOBJS)
 	$(CC) $^ $(CFLAGS) -o $@
 
 run:all
