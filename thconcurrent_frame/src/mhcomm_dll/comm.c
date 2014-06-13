@@ -59,6 +59,7 @@ int mh_init_server_sock(short port, int type)
 
 int mh_init_server_tcp_sock(short port, int backlog)
 {
+	printf("init tcp socket\n");
 	int server_sockd = 0;
 	server_sockd = mh_init_server_sock(port, SOCK_STREAM);
 	if (-1 == server_sockd)

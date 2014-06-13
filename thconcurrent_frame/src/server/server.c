@@ -2,7 +2,8 @@
 #include "server_handler.h"
 #include "comm.h"
 #include "thread_pool.h"
-
+#include <signal.h>
+#include <setjmp.h>
 
 int main(int argc, char *argv[])
 {
@@ -30,11 +31,11 @@ int main(int argc, char *argv[])
 		{
 			perror("accept error ");
 			close(server_sockd);
+			close(client_sockd);
 			server_sockd = mh_init_server_tcp_sock((short) DEFAULT_PORT, BACKLOG);
-
+			//sleep(1);
 			continue ;
 		}
-
 		//printf("[%d]CIP:[%s],PORT[%d]\n", ++count, inet_ntoa(client_addr.sin_addr),
 		//       ntohs(client_addr.sin_port));
 

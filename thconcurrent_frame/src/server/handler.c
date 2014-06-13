@@ -40,7 +40,6 @@ int user_login(const char* ibuf, const ssize_t ilen, char** obufp, ssize_t* olen
 	char username[129];
 	char password[129];
 	unsigned long uid = 0;
-	printf("username[%p]\n", username);
 	unpacket_message(ibuf, ilen, username, password, (char*) &uid, NULL);
 	printf("user_login() - username[%s], password[%s], uid[%lu]\n", username, password, uid);
 }

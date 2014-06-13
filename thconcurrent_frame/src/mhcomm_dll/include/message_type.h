@@ -6,11 +6,14 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define MAX_CMSG_BUF_SIZE 8192
+
 // 二进制流数据，请勿独立操作该结构体
 typedef struct CommMessage
 {
 	unsigned short	msg_type;
-	unsigned short	msg_len;
+	unsigned short	buf_len;
+	unsigned short	msg_pos;
 	char*		msg;
 } CMSG;
 

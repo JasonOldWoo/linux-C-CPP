@@ -26,7 +26,8 @@ void *server_handle(void *args)
 		printf("server_handlder() - recv_len=[%d]\n", recv_len);
 		server_process(rmsg, buf, recv_len, &obuf, &olen);
 		send(rmsg->cli_sockd, obuf, olen, 0);
-		free(obuf);
+		if (obuf != NULL)
+			free(obuf);
 		obuf = NULL;
 		//printf("TID[%lu] : MESSAGE[%s]\n", tid, buf);
 		//sprintf(buf, "TID[%lu]", tid);
