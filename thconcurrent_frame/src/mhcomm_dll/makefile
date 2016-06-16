@@ -2,7 +2,8 @@ include ../makefile.def
 
 LIBSPATH=../../lib
 LIBS=libmhcomm
-TARGET=$(LIBS).so $(LIBS).a
+#TARGET=$(LIBS).so $(LIBS).a
+TARGET=$(LIBS).a
 SRCS=$(wildcard *.c)
 OBJS=$(patsubst %.c,%.o,$(SRCS))
 
