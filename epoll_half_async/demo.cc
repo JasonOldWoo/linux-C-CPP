@@ -11,8 +11,8 @@
 #include <stdio.h>
 
 #define MAXBUF 1024
-#define SERVER_ADDR "127.0.0.1"
-#define PORT 3966
+#define SERVER_ADDR "10.12.2.124"
+#define PORT 10000
 
 void setnonblocking(int sockfd) {
 	int opts;
@@ -30,14 +30,13 @@ void setnonblocking(int sockfd) {
 }
 
 void handler(int sockfd) {
-	std::cout << "handler" << std::endl;
-	char buffer[MAXBUF] = "";
-	int len = read(sockfd, buffer, MAXBUF);
+	char buffer[MAXBUF * 1024] = "";
+	int len = read(sockfd, buffer, MAXBUF * 1024);
 	if (len > 0) {
-		std::cout << buffer << std::endl;
 	} else {
 		std::cerr << "handler failed" << std::endl;
 	}
+	printf("handler -- read len: %d\n", len);
 }
 
 typedef void (*proc)(int);
@@ -94,10 +93,13 @@ int main() {
 		epoll_event read_events[128];
 		int events_num = epoll_wait(epfd, read_events,
 			128, 2 * 1000);
-		//std::cout << "incomming" << std::endl;
+		std::cout << "incomming/timeout" << std::endl;
+		//char test_data[1024] = "handshake";
+		//int tmp_ret = send(sockfd, test_data, 1024, 0);
+		//std::cout << tmp_ret << std::endl;
 
 		for (int i = 0; i < events_num; i++) {
-			if (read_events[i].events == EPOLLIN) {
+			if (read_events[i].events & EPOLLIN) {
 				std::cout << "event: "
 					<< read_events[i].events << std::endl;
 				//std::cout << "descriptor: "
@@ -113,22 +115,24 @@ int main() {
 				}
 #else
 				printf("data.ptr: 0x%x\n",
-					(unsigned int) read_events[i].data.ptr);
-				op* pp = (op*) read_events[i].data.ptr;
+					(unsigned int) read_events[i].data.ptr); op* pp = (op*) read_events[i].data.ptr;
 				(*(pp->do_complete))(sockfd);
 #endif
-			} else if (read_events[i].events == EPOLLERR) {
-				printf("reset by remote peer\n");
+			}
+			if (read_events[i].events & EPOLLERR) {
+				printf("reseted by remote peer\n");
 				close(sockfd);
 				return 1;
-			} else if (read_events[i].events == EPOLLOUT) {
+			}
+			if (read_events[i].events & EPOLLOUT) {
 				std::cout << "epollout" << std::endl;
 				continue ;
-			} else {
-				std::cout << "event: "
-					<< read_events[i].events << std::endl;
-				continue ;
 			}
+			//else {
+			//	std::cout << "event: "
+			//		<< read_events[i].events << std::endl;
+			//	continue ;
+			//}
 		}
 	}
 

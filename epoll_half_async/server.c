@@ -26,20 +26,23 @@
 *	a streaming server.
 **************************************************************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <resolv.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/time.h>
 
 #define MY_PORT		3966
-#define MAXBUF		1024
+#define MAXBUF		5 * 1024 * 1024
 
 int main(int Count, char *Strings[])
 {   int sockfd;
 	struct sockaddr_in self;
-	char buffer[MAXBUF];
+	//char buffer[MAXBUF];
 
 	/*---Create streaming socket---*/
     if ( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0 )
@@ -70,17 +73,29 @@ int main(int Count, char *Strings[])
 
 	/*---Forever... ---*/
 	while (1)
-	{	int clientfd;
+	{
+		int clientfd;
 		struct sockaddr_in client_addr;
 		int addrlen=sizeof(client_addr);
 
 		/*---accept a connection (creating a data pipe)---*/
 		clientfd = accept(sockfd, (struct sockaddr*)&client_addr, &addrlen);
 		printf("%s:%d connected\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-#if 0
-		char buf[MAXBUF] = "";
-		ssize_t len = recv(clientfd, buf, MAXBUF, 0);
-		printf("string: %s\n", buf);
+#if 1
+		char* buf = (char*) malloc(MAXBUF);
+		ssize_t len = 0;
+		ssize_t total_len = 0;
+		struct timeval t_start, t_end;
+		gettimeofday(&t_start, NULL);
+		while ((len = recv(clientfd, buf, MAXBUF, 0)) > 0) {
+			total_len += len;
+		}
+		gettimeofday(&t_end, NULL);
+		uint64_t cost = 1000000 * (t_end.tv_sec - t_start.tv_sec) + t_end.tv_usec - t_start.tv_usec;
+		printf("start: %lu:%lu, end: %lu:%lu\n", t_start.tv_sec, t_start.tv_usec, t_end.tv_sec, t_end.tv_usec);
+		printf("cost: %lu\n", cost);
+		double uspeed = (double) total_len / (double) cost;
+		printf("average speed: %lf bytes/usec | %lf kbytes/sec\n", uspeed, uspeed * 1000000.0 / 1024.0);
 #else
 		//sleep(4);
 		char buf[MAXBUF] = "hello, this message is from remote server";
@@ -93,6 +108,7 @@ int main(int Count, char *Strings[])
 
 		/*---Close data connection---*/
 		close(clientfd);
+		free(buf);
 		printf("shutdown service\n");
 	}
 
