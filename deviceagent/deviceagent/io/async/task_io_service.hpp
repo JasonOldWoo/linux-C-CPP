@@ -1,5 +1,5 @@
-#ifndef __TASK_IO_SERVICE_H__
-#define __TASK_IO_SERVICE_H__
+#ifndef __DEVICEAGENT_TASK_IO_SERVICE_HPP__
+#define __DEVICEAGENT_TASK_IO_SERVICE_HPP__
 
 #include <limits>
 #include <climits>

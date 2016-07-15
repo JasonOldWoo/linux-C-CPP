@@ -1,6 +1,5 @@
-#ifndef __DEVICEAGENT_EPOLL_H__
-#define __DEVICEAGENT_EPOLL_H__
-#pragma once
+#ifndef __DEVICEAGENT_EPOLL_HPP__
+#define __DEVICEAGENT_EPOLL_HPP__
 #include <stdint.h>
 #include <sys/epoll.h>
 #include <sys/fcntl.h>
@@ -64,6 +63,7 @@ public:
 	typedef task_io_service<epoller, config> io_service;
 
 	typedef socket_type handle;
+	typedef op_poll reactor_op;
 
 	class select_interrupter {
 	public:
@@ -176,7 +176,7 @@ public:
 		}
 
 		epoller* poller_;
-		std::list<operation*> ops_;
+		lib::list<operation*> ops_;
 		operation* first_op_;
 	};
 
@@ -194,7 +194,7 @@ public:
 		epoller* poller_;
 		socket_type descriptor_;
 		::uint32_t register_events_;
-		lib::deque<op_poll*> op_que_[op_max];
+		lib::list<op_poll*> op_que_[op_max];
 		bool shutdown_;
 
 		op_set()
@@ -258,7 +258,7 @@ public:
 		shutdown_ = true;
 		lock.unlock();
 
-		std::list<operation*> ops;
+		lib::list<operation*> ops;
 
 		while (op_set* set = registered_descriptors_.first()) {
 			for (int i = 0; i < op_max; ++i) {
@@ -353,7 +353,7 @@ public:
 
 		scoped_lock lock(set->mutex_);
 
-		std::list<operation*> ops;
+		lib::list<operation*> ops;
 		for (int i = 0; i < op_max; i++) {
 			while (op_poll* op = set->op_que_[i].front() && set->op_que_[i].size()) {
 				op->ec_ = ECANCELED;
@@ -380,7 +380,7 @@ public:
 				epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, descriptor, &ev);
 			}
 
-			std::list<operation*> ops;
+			lib::list<operation*> ops;
 			for (int i = 0; i < op_max; ++i) {
 				op_poll* op = 0;
 				while ((op = set->op_que_[i].front()) && set->op_que_[i].size()) {
@@ -402,7 +402,7 @@ public:
 		}
 	}
 
-	void run(bool block, std::list<operation*>& ops) {
+	void run(bool block, lib::list<operation*>& ops) {
 		int timeout = block ? 5 * 60 * 1000 : 0;
 		epoll_event evs[128];
 		int num_evs = epoll_wait(epoll_fd_, evs, 128, timeout);

@@ -33,7 +33,6 @@ namespace zl_device_agent {
 
 		void do_complete(const int& ec, std::size_t bytes) {
 			assert(ch_.object && ch_.proc);
-			//std::cout << __func__ << " invoked." << std::endl;
 			(ch_.object->*ch_.proc) (ec, bytes);
 		}
 

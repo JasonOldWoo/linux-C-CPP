@@ -4,9 +4,11 @@
 #include <functional>
 #endif
 #include <deque>
+#include <list>
 namespace zl_device_agent {
 namespace lib {
 	using std::deque;
+	using std::list;
 	// function
 #ifdef _DEVICEAGENT_CPP11_ENABLE_
 #else
