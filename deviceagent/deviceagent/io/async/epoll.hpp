@@ -17,14 +17,6 @@
 namespace zl_device_agent {
 namespace async_io {
 
-enum op_state {
-	op_read = 0,
-	op_write = 1,
-	op_connect = 2,
-	op_except = 3,
-	op_max,
-};
-
 typedef bool (cbase::*do_work_func)();
 struct work_handler : public handler<do_work_func> {
 };
@@ -234,6 +226,7 @@ public:
 		void do_complete(const int& ec, std::size_t bytes_transferred) {
 			::uint32_t events = static_cast<uint32_t> (bytes_transferred);
 			if (operation* op = perform_io(events)) {
+				std::cout << "after perform io op: " << op << std::endl;
 				op->do_complete(ec, 0);
 			}
 		}
@@ -245,7 +238,9 @@ public:
 		interrupter_(),
 		epoll_fd_(do_epoll_create()),
 		shutdown_(false)
-	{}
+	{
+		operation op;
+	}
 
 	~epoller () {
 		if (epoll_fd_ != -1) {

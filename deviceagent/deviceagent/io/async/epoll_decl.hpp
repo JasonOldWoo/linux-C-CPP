@@ -5,6 +5,7 @@ namespace zl_device_agent {
 namespace async_io {
 template <typename config> class epoller;
 class op_poll;
+class op_set;
 }	// async_io
 }	// zl_device_agent
 

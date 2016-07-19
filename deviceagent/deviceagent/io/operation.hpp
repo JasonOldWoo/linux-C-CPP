@@ -3,6 +3,8 @@
 
 #include "../basedef.h"
 #include "../common.h"
+#include "async/task_io_service_decl.hpp"
+#include "async/epoll.hpp"
 // for debug
 #include <iostream>
 #include <stdio.h>
@@ -10,43 +12,52 @@
 
 namespace zl_device_agent {
   // TODO with owner parameter
-  typedef void (cbase::*complete_func)(const int&, std::size_t);
-  struct complete_handler : public handler<complete_func> {
-  };
+enum op_state {
+	op_read = 0,
+	op_write = 1,
+	op_connect = 2,
+	op_except = 3,
+	op_max,
+};
 
-  class operation : public cbase{
-	public:
-	  operation() {
-	  	ch_.object = 0;
-	  	ch_.proc = 0;
-	  }
+typedef void (cbase::*complete_func)(const int&, std::size_t, bool destroy);
+struct complete_handler : public handler<complete_func> {
+};
 
-	  operation(complete_handler& ch)
-		: task_result_(0), ch_(ch)
-	  {
-	  }
+class operation : public cbase {
+	template <typename reactor, typename config> friend class async_io::task_io_service;
+public:
+  operation() {
+  	ch_.object = 0;
+  	ch_.proc = 0;
+  }
 
-		operation(cbase* object, complete_func proc) {
-			ch_.object = object;
-			ch_.proc = proc;
-		}
+  operation(complete_handler& ch)
+	: task_result_(0), ch_(ch)
+  {
+  }
 
-		void do_complete(const int& ec, std::size_t bytes) {
-			assert(ch_.object && ch_.proc);
-			(ch_.object->*ch_.proc) (ec, bytes);
-		}
+	operation(cbase* object, complete_func proc) {
+		ch_.object = object;
+		ch_.proc = proc;
+	}
 
-		void destroy() {
-			assert(ch_.object && ch_.proc);
-			(ch_.object->*ch_.proc) (errno, 0);
-		}
+	void do_complete(const int& ec, std::size_t bytes) {
+		assert(ch_.object && ch_.proc);
+		(ch_.object->*ch_.proc) (ec, bytes, false);
+	}
 
-	  //protected:
-	  unsigned int task_result_;
+	void destroy() {
+		assert(ch_.object && ch_.proc);
+		(ch_.object->*ch_.proc) (errno, 0, true);
+	}
 
-	private:
-	  complete_handler ch_;
-  };
+protected:
+  unsigned int task_result_;
+
+private:
+  complete_handler ch_;
+};
 }	// namespace zl_device_agent
 
 #endif

@@ -68,10 +68,16 @@ public:
     }
   }
 
-  void do_callback(std::size_t) {
-    std::cout << __func__ << " -- state: " << buf_->state
-      << ", bytes: " << buf_->bytes_trans << std::endl;
-    (handler_.object->*handler_.proc)(buf_->state, buf_->bytes_trans);
+  void do_callback(const int&, std::size_t, bool destroy) {
+		write_handler handler(handler_.object, handler_.proc);
+		sock_send_op* p = this;
+		p->~sock_send_op();
+		::operator delete(this);
+		if (!destroy) {
+			std::cout << __func__ << " -- state: " << buf_->state
+				<< ", bytes: " << buf_->bytes_trans << std::endl;
+			(handler.object->*handler.proc)(buf_->state, buf_->bytes_trans);
+		}
   }
 
 private:
@@ -103,14 +109,14 @@ public:
     if (sock_ < 0) return ;
     // TODO memory leak op
     sock_send_op* op = new sock_send_op(sock_, wrh_, buf);
-    io_service_->get_reactor()->start_op(zl_device_agent::async_io::op_write, sock_, op_set_, op, true);
+    io_service_->get_reactor()->start_op(zl_device_agent::op_write, sock_, op_set_, op, true);
     return ;
   }
 
   ~sock() {
     if (sock_ > 0) {
-    io_service_->get_reactor()->deregister_descriptor(sock_, op_set_, true);
-    ::close(sock_);
+			io_service_->get_reactor()->deregister_descriptor(sock_, op_set_, true);
+			::close(sock_);
     }
   }
 
