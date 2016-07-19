@@ -24,9 +24,18 @@ public:
 	{}
 
 	bool do_work() {
-		int bytes = ::send(sock_, buf_->msg + buf_->bytes_trans,
-				buf_->len - buf_->bytes_trans, flag_);
-		buf_->state = bytes;
+		int bytes = 0;
+		for (; ; ) {
+		  bytes = ::send(sock_, buf_->msg + buf_->bytes_trans,
+				  buf_->len - buf_->bytes_trans, flag_);
+		  buf_->state = bytes;
+		  // 被中断的系统调用
+		  if (bytes < 0 && EINTR == errno) {
+			continue ;
+		  } else {
+			break ;
+		  }
+		}
 		if (bytes < 0) {
 			return false;
 		} else {

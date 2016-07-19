@@ -56,9 +56,24 @@ public:
 	void post_immediate_completion(reactor_op* op);
 
 	/**
-	 * @desc 停止服务
+	 * @desc 停止服务,并且销毁当前任务(不执行用户回调)
 	 **/
 	void shutdown_service();
+
+	/**
+ 	 * @desc 停止服务,并且会终断反应器的阻塞
+ 	 **/
+	void stop();
+
+	/**
+ 	 * @desc 是否停止
+ 	 **/
+	bool stopped();
+
+	/**
+ 	 * @desc 重置服务
+ 	 **/
+	void reset();
 
 private:
 

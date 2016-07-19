@@ -22,6 +22,7 @@ void object_base::init() {
 #if 0
 void object_base::destroy() {
 	if (proactor_) {
+		proactor_->shutdown_service();
 		delete proactor_;
 	}
 }
@@ -29,6 +30,10 @@ void object_base::destroy() {
 
 void object_base::set_write_handler(write_handler& wh) {
 	wh_ = wh;
+}
+
+void object_base::set_read_handler(read_handler& rh) {
+	rh_ = rh;
 }
 
 handle object_base::get_descriptor() const {

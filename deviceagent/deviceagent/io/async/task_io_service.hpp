@@ -160,6 +160,7 @@ class task_io_service : public cbase {
 			task_io_service_->task_interrupted_ = true;
 			task_io_service_->op_que_.merge(this_thread_->private_op_que);
 			task_io_service_->op_que_.push_back(&task_io_service_->task_operation_);
+			//std::cout << __func__ << " -- op_que_.size(): " << task_io_service_->op_que_.size() << std::endl;
 		}
 
 		task_io_service* task_io_service_;
@@ -306,7 +307,7 @@ public:
 		//std::cout << __func__ << " -- op_que_ push op" << std::endl;
 		//std::cout << "op: " << op << std::endl;
 		op_que_.push_back(op);
-		//std::cout << "op size: " << op_que_.size() << std::endl;
+		//std::cout << __func__ << " -- op_que_.size: " << op_que_.size() << std::endl;
 		wake_one_thread_and_unlock(lock);
 	}
 
@@ -369,6 +370,8 @@ private:
 					(void)on_exit;
 
 					poller_->run(!more_handlers, this_thread.private_op_que);
+					//std::cout << __func__ << " -- task incoming" << std::endl;
+					//std::cout << __func__ << " -- more_handlers: " << more_handlers << std::endl;
 				} else {
 					//std::cout << __func__ << " -- o: " << o << std::endl;
 					std::size_t task_result = o->task_result_;
@@ -383,6 +386,7 @@ private:
 					(void)on_exit;
 
 					o->do_complete(ec, task_result);
+					//std::cout << __func__ << " -- ok" << std::endl;
 					return 1;
 				}
 			} else {
@@ -391,8 +395,10 @@ private:
 				first_idle_thread_ = &this_thread;
 				this_thread.wakeup_event->clear(lock);
 				this_thread.wakeup_event->wait(lock);
+				//std::cout << __func__ << " -- nothing to run" << std::endl;
 			}
 		}
+		std::cout << __func__ << " -- stopped" << std::endl;
 
 		return 0;
 	}
@@ -409,7 +415,6 @@ private:
 
 		if (!task_interrupted_ && poller_) {
 			task_interrupted_ = true;
-			// incomplete
 			poller_->interrupt();
 		}
 	}

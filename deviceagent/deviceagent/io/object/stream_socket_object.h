@@ -19,7 +19,7 @@ public:
 	{object_base::init();}
 
 	~stream_socket_object()
-	{object_base::destroy();}
+	{}
 
 	int open();
 
@@ -41,6 +41,8 @@ public:
 
 	void async_write(cbuffer* buf, int flag);
 
+	void async_read(cbuffer* buf, int flag);
+
 protected:
 
 	// TODO custom error wrapper
@@ -49,6 +51,8 @@ protected:
 	void do_close();
 
 	void start_write_op(reactor_op* op, bool nonblocking, bool notask);
+
+	void start_read_op(reactor_op* op, bool nonblocking, bool notask);
 
 	void start_connect();
 

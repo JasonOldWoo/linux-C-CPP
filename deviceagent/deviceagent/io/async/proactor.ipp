@@ -9,7 +9,7 @@ namespace async_io {
 
 template <typename config>
 proactor<config>::proactor() {
-	io_service_ = new io_service(1);
+	io_service_ = new io_service(0);
 }
 
 template <typename config>
@@ -71,6 +71,21 @@ void proactor<config>::post_immediate_completion(reactor_op* op) {
 template <typename config>
 void proactor<config>::shutdown_service() {
 	io_service_->shutdown_service();
+}
+
+template <typename config>
+void proactor<config>::stop() {
+  io_service_->stop();
+}
+
+template <typename config>
+bool proactor<config>::stopped() {
+  io_service_->stopped();
+}
+
+template <typename config>
+void proactor<config>::reset() {
+  io_service_->reset();
 }
 
 }	// async_io

@@ -226,7 +226,7 @@ public:
 		void do_complete(const int& ec, std::size_t bytes_transferred) {
 			::uint32_t events = static_cast<uint32_t> (bytes_transferred);
 			if (operation* op = perform_io(events)) {
-				std::cout << "after perform io op: " << op << std::endl;
+				//std::cout << "after perform io op: " << op << std::endl;
 				op->do_complete(ec, 0);
 			}
 		}
@@ -399,13 +399,16 @@ public:
 
 	void run(bool block, lib::list<operation*>& ops) {
 		int timeout = block ? 5 * 60 * 1000 : 0;
+		//std::cout << __func__ << " -- timeout: " << timeout << std::endl;
 		epoll_event evs[128];
 		int num_evs = epoll_wait(epoll_fd_, evs, 128, timeout);
+		//std::cout << __func__ << " -- num_evs: " << num_evs << std::endl;
 
 		for (int i = 0; i < num_evs; i++) {
 			void* ptr = evs[i].data.ptr;
 			if (ptr == &interrupter_) {
 			} else {
+				//std::cout << __func__ << " -- " << i << " events: " << evs[i].events << std::endl;
 				assert(ptr);
 				op_set* set = static_cast<op_set*> (ptr);
 				set->set_ready_event(evs[i].events);

@@ -7,7 +7,7 @@ int stream_socket_object::open() {
 }
 
 void stream_socket_object::close() {
-	void do_close();
+	do_close();
 }
 
 bool stream_socket_object::is_open() {
@@ -29,11 +29,14 @@ int stream_socket_object::connect(sockaddr* addr) {
 		fds.revents = 0;
 		result = ::poll(&fds, 1, -1);
 		if (result >= 0) {
+			//std::cout << __func__ << " -- ok" << std::endl;
 			return 0;
 		} else {
+			std::cerr << __func__ << " -- ::poll failed" << std::endl;
 			return errno;
 		}
 	} else {
+		std::cerr << __func__ << " -- ::connect failed" << std::endl;
 		return errno;
 	}
 }
@@ -50,6 +53,18 @@ void stream_socket_object::async_write(cbuffer* buf, int flag) {
 	start_write_op(p, true, (buf->len == buf->bytes_trans));
 }
 
+void stream_socket_object::async_read(cbuffer* buf, int flag) {
+	read_handler rh;
+	rh.object = static_cast<cbase*>(this);
+	rh.proc = (stream_socket_read_op::handle_read)
+	  &stream_socket_object::handle_read;
+
+	stream_socket_read_op* p =
+	  new stream_socket_read_op(descriptor_, rh, buf, flag);
+
+	start_read_op(p, true, (buf->len == buf->bytes_trans));
+}
+
 int stream_socket_object::do_open() {
 	if (is_open()) {
 		return -1;
@@ -59,45 +74,59 @@ int stream_socket_object::do_open() {
 
 	if (err < 0) {
 		descriptor_ = invalid_socket;
+		std::cerr << __func__ << " -- ::socket failed" << std::endl;
 		return errno;
 	} else {
 		descriptor_ = err;
 	}
 
 	if ((err = proactor_->attach(*this))) {
+		std::cerr << __func__ << " -- attach failed" << std::endl;
 		return err;
 	}
 
+	//std::cout << __func__ << " -- ok" << std::endl;
 	return 0;
 }
 
 void stream_socket_object::do_close() {
-	::close(descriptor_);
+	if (!is_open()) {
+	  std::cerr << __func__ << " -- already closed" << std::endl;
+	  return ;
+	}
+
 	proactor_->detach(*this, true);
+	::close(descriptor_);
+	descriptor_ = invalid_socket;
+	//std::cout << __func__ << " -- ok" << std::endl;
 }
 
 void stream_socket_object::start_write_op(reactor_op* op,
 	bool nonblocking, bool notask) {
 	if (!notask) {
-		std::cout << "1111" << std::endl;
 		bool sock_internal_blocking = false;
 		int err = get_nonblocking(sock_internal_blocking);
-#if 1
 		if ((!err && sock_internal_blocking)
 			|| !(op->ec_ = set_nonblocking(true))) {
-#else
-		{
-#endif
 			proactor_->start_write_op(op, *this, nonblocking);
-			std::cout << "2222" << std::endl;
 			return ;
 		}
-		std::cout << "4444" << std::endl;
 	}
 
-	std::cout << "0000" << std::endl;
-
 	proactor_->post_immediate_completion(op);
+}
+
+void stream_socket_object::start_read_op(reactor_op* op,
+	bool nonblocking, bool notask) {
+	if (!notask) {
+		bool sock_internal_blocking = false;
+		int err = get_nonblocking(sock_internal_blocking);
+		if ((!err && sock_internal_blocking)
+			|| !(op->ec_ = set_nonblocking(true))) {
+		  proactor_->start_read_op(op, *this, nonblocking);
+		  return ;
+		}
+	}
 }
 
 int stream_socket_object::set_option(const int& name, const int& opt) {
@@ -171,6 +200,7 @@ void stream_socket_object::handle_write(int ec, int bytes) {
 }
 
 void stream_socket_object::handle_read(int ec, int bytes) {
+	(rh_.object->*rh_.proc)(ec, bytes);
 }
 
 }	// namespace zl_device_agent
