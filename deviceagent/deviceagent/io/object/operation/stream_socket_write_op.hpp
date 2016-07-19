@@ -1,22 +1,8 @@
-#include "../../../config/core.h"
-#include "../../async/proactor.hpp"
-#include "../../operation.hpp"
-#include <sys/socket.h>
-#include <sys/types.h>
+#ifndef __DEVICEAGENT_STREAM_SOCKET_WRITE_OP_HPP__
+#define __DEVICEAGENT_STREAM_SOCKET_WRITE_OP_HPP__
+#include "./stream_socket_op_decl.hpp"
 
 namespace zl_device_agent {
-
-// TODO include basic header file
-typedef async_io::proactor<core_config> core_proactor;
-typedef core_proactor* core_proactor_ptr;
-typedef core_proactor::reactor_op reactor_op;
-
-struct cbuffer {
-	char* msg;
-	std::size_t len;
-	std::size_t bytes_trans;
-	int state;
-};
 
 class stream_socket_write_op : public reactor_op {
 public:
@@ -67,3 +53,4 @@ private:
 	int flag_;
 };
 }	// namespace zl_device_agent
+#endif	// __deviceagent_stream_socket_write_op_hpp__
