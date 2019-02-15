@@ -1,10 +1,8 @@
 #define bit(x) (1u<<(x))
 int lengthOfLongestSubstring(char* s) {
-        unsigned int szBits[4]={0};
+        uint32_t szBits[4]={0};
         int index=0, numbits=0;
-        size_t nMaxLen=0,len=0;
-        size_t pos=0;
-        size_t i,j;
+        size_t nMaxLen=0,len=0,pos=0,i,j;
         size_t strLen=strlen(s);
         const char* cs=s;
         for (i=0; i<strLen; i++)
@@ -33,8 +31,8 @@ int lengthOfLongestSubstring(char* s) {
             }
             if (!(szBits[index]&numbits)) len++;
             szBits[index] |= numbits;
-            if (!len) pos=i;
             if (nMaxLen<len) nMaxLen=len;
+            if (nMaxLen >= strLen - i + len) break;
         }
         return (int)nMaxLen;
 }
